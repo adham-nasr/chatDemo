@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
 import { User } from '../models/User.js';
 import { generateToken } from '../utils/jwt.js';
+import { hashPasssword, verifyPassword } from '../utils/password.js';
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -12,7 +12,7 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Username is already taken' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hashPasssword(password);
 
     const user = await User.create({
       username,
@@ -40,7 +40,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid username or password' });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await verifyPassword(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid username or password' });
     }
