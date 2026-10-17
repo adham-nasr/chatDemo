@@ -1,24 +1,20 @@
 import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../types.js';
+import { getGroupMessagesService } from '../services/message.service.js';
 
 export const getGroupMessages = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const groupId = req.params.id;
     const userId = req.user?.userId;
 
-    // Dummy service call layer
-    const messages = [
-      {
-        _id: 'dummy_message_id',
-        sender: { _id: userId, username: req.user?.username || 'user' },
-        group: groupId,
-        content: 'Hello, this is a dummy message',
-        createdAt: new Date(),
-      },
-    ];
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const messages = await getGroupMessagesService(groupId, userId);
 
     return res.status(200).json({ messages });
   } catch (error: any) {
-    return res.status(500).json({ message: 'Internal server error', error: error.message });
+    return res.status(400).json({ message: error.message || 'Internal server error' });
   }
 };
