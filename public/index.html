@@ -62,8 +62,9 @@
                 <!-- Messages will be loaded here -->
             </div>
             <div id="chat-input-area" class="p-4 bg-white border-t border-gray-200 hidden">
-                <form id="message-form" class="flex space-x-2">
-                    <input type="text" id="message-input" placeholder="Type a message..." required class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <form id="message-form" class="flex space-x-2 items-center">
+                    <input type="text" id="message-input" placeholder="Type a message..." class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="file" id="file-input" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                     <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Send</button>
                 </form>
             </div>
@@ -237,19 +238,49 @@
             }
         }
 
-        document.getElementById('message-form').addEventListener('submit', (e) => {
+        document.getElementById('message-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const input = document.getElementById('message-input');
+            const fileInput = document.getElementById('file-input');
             const content = input.value;
-            if (!content || !currentGroupId) return;
+            const file = fileInput.files[0];
+
+            if ((!content && !file) || !currentGroupId) return;
+
+            let fileUrl = undefined;
+            let fileType = undefined;
+
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const uploadRes = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    const uploadData = await uploadRes.json();
+                    if (!uploadRes.ok) throw new Error(uploadData.message || 'File upload failed');
+
+                    fileUrl = uploadData.fileUrl;
+                    fileType = uploadData.fileType;
+                } catch (err) {
+                    alert(err.message);
+                    return;
+                }
+            }
 
             socket.emit('send_message', {
                 sender: currentUser.id,
                 group: currentGroupId,
-                content: content
+                content: content || undefined,
+                fileUrl: fileUrl,
+                fileType: fileType
             });
 
             input.value = '';
+            fileInput.value = '';
         });
 
         function appendMessage(message) {
@@ -260,10 +291,20 @@
             
             const senderName = typeof message.sender === 'object' ? message.sender.username : 'User';
 
+            let fileContentHtml = '';
+            if (message.fileUrl) {
+                if (message.fileType && message.fileType.startsWith('image/')) {
+                    fileContentHtml = `<div class="mt-2"><img src="${message.fileUrl}" class="max-w-xs rounded-md shadow-sm"></div>`;
+                } else {
+                    fileContentHtml = `<div class="mt-2"><a href="${message.fileUrl}" target="_blank" class="text-blue-500 underline text-sm">Download Attachment</a></div>`;
+                }
+            }
+
             div.innerHTML = `
                 <div class="text-xs text-gray-500 mb-1">${senderName}</div>
                 <div class="px-4 py-2 rounded-lg max-w-xs ${isSelf ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-800'}">
-                    ${message.content || ''}
+                    ${message.content ? `<div>${message.content}</div>` : ''}
+                    ${fileContentHtml}
                 </div>
             `;
             messagesList.appendChild(div);
