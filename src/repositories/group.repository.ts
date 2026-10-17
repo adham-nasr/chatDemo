@@ -1,4 +1,4 @@
-import { Group, type IGroup } from '../models/Group.js';
+import { Group, IGroup } from '../models/Group.js';
 import { Types } from 'mongoose';
 
 export class GroupRepository {
@@ -12,6 +12,10 @@ export class GroupRepository {
 
   async findGroupById(groupId: string): Promise<IGroup | null> {
     return await Group.findById(groupId);
+  }
+
+  async findGroupByName(name: string): Promise<IGroup | null> {
+    return await Group.findOne({ name });
   }
 
   async addMemberToGroup(groupId: string, userId: string): Promise<IGroup | null> {

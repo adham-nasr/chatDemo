@@ -11,7 +11,7 @@ router.use(authenticate);
 
 router.post('/', validate(createGroupSchema), createGroup);
 router.get('/', getGroups);
-router.post('/:id/join', joinGroup);
+router.post('/:name/join', joinGroup);
 router.get('/:id/messages', getGroupMessages);
 
 export default router;
