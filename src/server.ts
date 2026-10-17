@@ -4,6 +4,7 @@ import { connectDb } from "./db.js";
 import { config } from "./config.js";
 import app from "./app.js";
 import { MessageRepository } from './repositories/message.repository.js';
+import { sendMessageSchema, type SendMessageDto } from './dtos/message.dto.js';
 
 await connectDb();
 
@@ -30,20 +31,23 @@ io.on('connection', (socket) => {
         console.log(`User ${socket.id} left room ${roomId}`);
     });
 
-    socket.on('send_message', async (data) => {
+    socket.on('send_message', async (data: unknown) => {
         try {
+            const validatedData: SendMessageDto = await sendMessageSchema.parseAsync(data);
+
             const savedMessage = await messageRepository.createMessage({
-                sender: data.sender,
-                group: data.group,
-                content: data.content,
-                fileUrl: data.fileUrl,
-                fileType: data.fileType,
+                sender: validatedData.sender as any,
+                group: validatedData.group as any,
+                content: validatedData.content,
+                fileUrl: validatedData.fileUrl,
+                fileType: validatedData.fileType,
             });
 
             const populatedMessage = await savedMessage.populate('sender', 'username');
-            io.to(data.group).emit('receive_message', populatedMessage);
+            io.to(validatedData.group).emit('receive_message', populatedMessage);
         } catch (error) {
-            console.error('Failed to save message:', error);
+            console.error('Failed to validate or save message:', error);
+            socket.emit('error', { message: 'Failed to send message' });
         }
     });
 
