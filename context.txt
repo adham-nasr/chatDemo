@@ -1,0 +1,57 @@
+1. Project Overview
+A real-time group chat application built with Node.js, Express, TypeScript, and MongoDB. The application allows users to register, log in, create or join chat groups, send text messages, and upload files within groups in real time using WebSockets (Socket.io).
+
+2. Tech Stack
+- Runtime: Node.js
+- Framework: Express.js
+- Language: TypeScript
+- Database: MongoDB (with Mongoose)
+- Real-Time Communication: Socket.io
+- Authentication: JSON Web Tokens (JWT) & bcrypt for password hashing
+- File Uploads: Multer
+
+3. Database Schema
+- User:
+  - username: String (Required, Unique)
+  - email: String (Required, Unique)
+  - password: String (Required, Hashed)
+  - createdAt: Timestamp
+- Group:
+  - name: String (Required)
+  - description: String
+  - members: Array of ObjectIds (References User)
+  - admin: ObjectId (References User)
+  - createdAt: Timestamp
+- Message:
+  - sender: ObjectId (References User, Required)
+  - group: ObjectId (References Group, Required)
+  - content: String (Optional if file is present)
+  - fileUrl: String (Optional)
+  - fileType: String (Optional)
+  - createdAt: Timestamp
+
+4. API Endpoints
+- Authentication:
+  - POST /api/auth/register - Register a new user
+  - POST /api/auth/login - Log in an existing user
+- Groups:
+  - POST /api/groups - Create a new chat group
+  - GET /api/groups - List groups the user is part of
+  - POST /api/groups/:id/join - Join a group
+- Messages & Files:
+  - GET /api/groups/:id/messages - Fetch message history for a group
+  - POST /api/upload - Upload a file and return its URL
+
+5. High-Level Folder Structure
+src/
+├── config.ts         # Environment variables & configuration
+├── db.ts             # MongoDB connection setup
+├── controllers/      # Request handlers for routes
+├── middleware/       # Express middleware (auth, file uploads)
+├── models/           # Mongoose schemas and models
+├── routes/           # Express route definitions
+├── services/         # Business logic layer
+├── utils/            # Helper functions, JWT utilities, constants
+├── app.ts            # Express application setup
+├── server.ts         # HTTP server and Socket.io initialisation
+└── types.ts          # Shared TypeScript types and interfaces
