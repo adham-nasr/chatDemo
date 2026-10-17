@@ -12,7 +12,7 @@ export const authenticate = (req: AuthenticatedRequest, res: Response, next: Nex
   const token = authHeader.split(' ')[1];
 
   try {
-    const payload = verifyToken(token);
+    const payload = verifyToken(token || "");
     req.user = payload;
     next();
   } catch (error) {
