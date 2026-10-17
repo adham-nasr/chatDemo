@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import { authenticate } from '../middleware/auth.middleware.js';
+import { uploadFile } from '../controllers/upload.controller.js';
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -18,16 +19,6 @@ const router = Router();
 
 router.use(authenticate);
 
-router.post('/', upload.single('file'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-    }
-    const fileUrl = `/uploads/${req.file.filename}`;
-    return res.status(200).json({
-        message: 'File uploaded successfully',
-        fileUrl,
-        fileType: req.file.mimetype
-    });
-});
+router.post('/', upload.single('file'), uploadFile);
 
 export default router;
