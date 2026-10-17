@@ -1,5 +1,5 @@
 ### Variables
-@baseUrl = http://localhost:5000/api
+@baseUrl = http://localhost:3003/api
 @authToken = {{login.response.body.token}}
 @groupId = REPLACE_WITH_GROUP_ID
 
