@@ -1,40 +1,33 @@
+import { GroupRepository } from '../repositories/group.repository.js';
+
+const groupRepository = new GroupRepository();
+
 export const createGroupService = async (data: { name: string; description?: string }, userId: string) => {
-  // TODO: Call group repository when implemented
-  const group = {
-    _id: 'dummy_group_id',
+  const group = await groupRepository.createGroup({
     name: data.name,
     description: data.description,
-    admin: userId,
-    members: [userId],
-    createdAt: new Date(),
-  };
+    admin: userId as any,
+    members: [userId as any],
+  });
 
   return group;
 };
 
 export const getGroupsService = async (userId: string) => {
-  // TODO: Call group repository when implemented
-  const groups = [
-    {
-      _id: 'dummy_group_id_1',
-      name: 'General Chat',
-      description: 'A dummy group',
-      admin: userId,
-      members: [userId],
-      createdAt: new Date(),
-    },
-  ];
-
+  const groups = await groupRepository.findGroupsByUserId(userId);
   return groups;
 };
 
 export const joinGroupService = async (groupId: string, userId: string) => {
-  // TODO: Call group repository when implemented
-  const group = {
-    _id: groupId,
-    name: 'Dummy Group',
-    members: [userId],
-  };
+  const group = await groupRepository.findGroupById(groupId);
+  if (!group) {
+    throw new Error('Group not found');
+  }
 
-  return group;
+  if (group.members.includes(userId as any)) {
+    throw new Error('User is already a member of this group');
+  }
+
+  const updatedGroup = await groupRepository.addMemberToGroup(groupId, userId);
+  return updatedGroup;
 };
