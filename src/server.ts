@@ -1,5 +1,6 @@
 import http from 'http';
 import { Server } from 'socket.io';
+import { Types } from 'mongoose';
 import { connectDb } from "./db.js";
 import { config } from "./config.js";
 import app from "./app.js";
@@ -36,9 +37,9 @@ io.on('connection', (socket) => {
             const validatedData: SendMessageDto = await sendMessageSchema.parseAsync(data);
 
             const savedMessage = await messageRepository.createMessage({
-                sender: validatedData.sender as any,
-                group: validatedData.group as any,
-                content: validatedData.content ,
+                sender: new Types.ObjectId(validatedData.sender),
+                group: new Types.ObjectId(validatedData.group),
+                content: validatedData.content,
                 fileUrl: validatedData.fileUrl,
                 fileType: validatedData.fileType,
             });
