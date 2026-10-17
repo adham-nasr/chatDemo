@@ -1,4 +1,5 @@
 import { GroupRepository } from '../repositories/group.repository.js';
+import { Types } from 'mongoose';
 
 const groupRepository = new GroupRepository();
 
@@ -6,8 +7,8 @@ export const createGroupService = async (data: { name: string; description?: str
   const group = await groupRepository.createGroup({
     name: data.name,
     description: data.description,
-    admin: userId as any,
-    members: [userId as any],
+    admin: new Types.ObjectId(userId),
+    members: [new Types.ObjectId(userId)],
   });
 
   return group;
@@ -24,7 +25,8 @@ export const joinGroupService = async (groupId: string, userId: string) => {
     throw new Error('Group not found');
   }
 
-  if (group.members.includes(userId as any)) {
+  const isMember = group.members.some((memberId) => memberId.toString() === userId);
+  if (isMember) {
     throw new Error('User is already a member of this group');
   }
 
