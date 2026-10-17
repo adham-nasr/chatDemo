@@ -1,6 +1,5 @@
 import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../types.js';
-import { Group } from '../models/Group.js';
 
 export const createGroup = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -11,15 +10,18 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const group = await Group.create({
+    // Dummy service call layer
+    const group = {
+      _id: 'dummy_group_id',
       name,
       description,
       admin: userId,
       members: [userId],
-    });
+      createdAt: new Date(),
+    };
 
     return res.status(201).json({
-      message: 'Group created successfully',
+      message: 'Group created successfully (dummy)',
       group,
     });
   } catch (error: any) {
@@ -31,7 +33,17 @@ export const getGroups = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
 
-    const groups = await Group.find({ members: userId });
+    // Dummy service call layer
+    const groups = [
+      {
+        _id: 'dummy_group_id_1',
+        name: 'General Chat',
+        description: 'A dummy group',
+        admin: userId,
+        members: [userId],
+        createdAt: new Date(),
+      },
+    ];
 
     return res.status(200).json({ groups });
   } catch (error: any) {
@@ -44,19 +56,14 @@ export const joinGroup = async (req: AuthenticatedRequest, res: Response) => {
     const groupId = req.params.id;
     const userId = req.user?.userId;
 
-    const group = await Group.findById(groupId);
-    if (!group) {
-      return res.status(404).json({ message: 'Group not found' });
-    }
+    // Dummy service call layer
+    const group = {
+      _id: groupId,
+      name: 'Dummy Group',
+      members: [userId],
+    };
 
-    if (group.members.includes(userId as any)) {
-      return res.status(400).json({ message: 'User is already a member of this group' });
-    }
-
-    group.members.push(userId as any);
-    await group.save();
-
-    return res.status(200).json({ message: 'Joined group successfully', group });
+    return res.status(200).json({ message: 'Joined group successfully (dummy)', group });
   } catch (error: any) {
     return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
