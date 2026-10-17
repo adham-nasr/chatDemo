@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col">
+
+    <!-- Auth Container -->
+    <div id="auth-container" class="flex items-center justify-center h-full">
+        <div class="bg-white p-8 rounded shadow-md w-96">
+            <h2 id="auth-title" class="text-2xl font-bold mb-6 text-center">Login</h2>
+            <div id="auth-error" class="text-red-500 text-sm mb-4 hidden"></div>
+            <form id="auth-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="username" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <button type="submit" id="auth-submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Login</button>
+            </form>
+            <p class="mt-4 text-sm text-center text-gray-600">
+                <span id="auth-toggle-text">Don't have an account?</span>
+                <button id="auth-toggle-btn" class="text-indigo-600 font-medium hover:underline">Register</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div id="chat-container" class="hidden flex h-full overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-1/4 bg-white border-r border-gray-200 flex flex-col">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <span id="current-user-display" class="font-bold text-gray-800"></span>
+                <button id="logout-btn" class="text-sm text-red-600 hover:underline">Logout</button>
+            </div>
+            <div class="p-4 border-b border-gray-200 space-y-2">
+                <input type="text" id="new-group-name" placeholder="New Group Name" class="w-full px-3 py-1 border rounded text-sm">
+                <button id="create-group-btn" class="w-full bg-green-600 text-white py-1 rounded text-sm hover:bg-green-700">Create Group</button>
+                <div class="flex space-x-2 mt-2">
+                    <input type="text" id="join-group-id" placeholder="Group ID" class="w-full px-3 py-1 border rounded text-sm">
+                    <button id="join-group-btn" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">Join</button>
+                </div>
+            </div>
+            <div id="groups-list" class="flex-1 overflow-y-auto divide-y divide-gray-100">
+                <!-- Groups will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="flex-1 flex flex-col bg-gray-50">
+            <div id="chat-header" class="p-4 bg-white border-b border-gray-200 font-bold text-gray-800">
+                Select a group to start chatting
+            </div>
+            <div id="messages-list" class="flex-1 p-4 overflow-y-auto space-y-4">
+                <!-- Messages will be loaded here -->
+            </div>
+            <div id="chat-input-area" class="p-4 bg-white border-t border-gray-200 hidden">
+                <form id="message-form" class="flex space-x-2">
+                    <input type="text" id="message-input" placeholder="Type a message..." required class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token');
+        let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        let currentGroupId = null;
+        let socket = null;
+
+        const authContainer = document.getElementById('auth-container');
+        const chatContainer = document.getElementById('chat-container');
+        const authForm = document.getElementById('auth-form');
+        const authTitle = document.getElementById('auth-title');
+        const authSubmit = document.getElementById('auth-submit');
+        const authToggleBtn = document.getElementById('auth-toggle-btn');
+        const authToggleText = document.getElementById('auth-toggle-text');
+        const authError = document.getElementById('auth-error');
+        
+        let isLoginMode = true;
+
+        authToggleBtn.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            authTitle.textContent = isLoginMode ? 'Login' : 'Register';
+            authSubmit.textContent = isLoginMode ? 'Login' : 'Register';
+            authToggleText.textContent = isLoginMode ? "Don't have an account?" : "Already have an account?";
+            authToggleBtn.textContent = isLoginMode ? 'Register' : 'Login';
+            authError.classList.add('hidden');
+        });
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            authError.classList.add('hidden');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Authentication failed');
+
+                token = data.token;
+                currentUser = data.user;
+                localStorage.setItem('token', token);
+                localStorage.setItem('user', JSON.stringify(currentUser));
+
+                initChatApp();
+            } catch (err) {
+                authError.textContent = err.message;
+                authError.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.clear();
+            location.reload();
+        });
+
+        if (token && currentUser.id) {
+            initChatApp();
+        }
+
+        function initChatApp() {
+            authContainer.classList.add('hidden');
+            chatContainer.classList.remove('hidden');
+            document.getElementById('current-user-display').textContent = `Logged in as: ${currentUser.username}`;
+
+            socket = io();
+
+            socket.on('receive_message', (message) => {
+                if (message.group === currentGroupId) {
+                    appendMessage(message);
+                }
+            });
+
+            loadGroups();
+        }
+
+        async function loadGroups() {
+            try {
+                const res = await fetch('/api/groups', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+
+                const groupsList = document.getElementById('groups-list');
+                groupsList.innerHTML = '';
+
+                data.groups.forEach(group => {
+                    const div = document.createElement('div');
+                    div.className = 'p-3 hover:bg-gray-100 cursor-pointer';
+                    div.innerHTML = `<div class="font-semibold">${group.name}</div><div class="text-xs text-gray-500 truncate">ID: ${group._id}</div>`;
+                    div.addEventListener('click', () => selectGroup(group._id, group.name));
+                    groupsList.appendChild(div);
+                });
+            } catch (err) {
+                console.error('Failed to load groups:', err);
+            }
+        }
+
+        document.getElementById('create-group-btn').addEventListener('click', async () => {
+            const name = document.getElementById('new-group-name').value;
+            if (!name) return;
+
+            try {
+                const res = await fetch('/api/groups', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name })
+                });
+                if (!res.ok) throw new Error('Failed to create group');
+                document.getElementById('new-group-name').value = '';
+                loadGroups();
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+
+        document.getElementById('join-group-btn').addEventListener('click', async () => {
+            const groupId = document.getElementById('join-group-id').value;
+            if (!groupId) return;
+
+            try {
+                const res = await fetch(`/api/groups/${groupId}/join`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+                document.getElementById('join-group-id').value = '';
+                loadGroups();
+            } catch (err) {
+                alert(err.message);
+            }
+        });
+
+        async function selectGroup(groupId, groupName) {
+            if (currentGroupId) {
+                socket.emit('leave_room', currentGroupId);
+            }
+            currentGroupId = groupId;
+            socket.emit('join_room', groupId);
+
+            document.getElementById('chat-header').textContent = groupName;
+            document.getElementById('chat-input-area').classList.remove('hidden');
+
+            try {
+                const res = await fetch(`/api/groups/${groupId}/messages`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+
+                const messagesList = document.getElementById('messages-list');
+                messagesList.innerHTML = '';
+                data.messages.forEach(msg => appendMessage(msg));
+            } catch (err) {
+                console.error('Failed to load messages:', err);
+            }
+        }
+
+        document.getElementById('message-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('message-input');
+            const content = input.value;
+            if (!content || !currentGroupId) return;
+
+            socket.emit('send_message', {
+                sender: currentUser.id,
+                group: currentGroupId,
+                content: content
+            });
+
+            input.value = '';
+        });
+
+        function appendMessage(message) {
+            const messagesList = document.getElementById('messages-list');
+            const div = document.createElement('div');
+            const isSelf = message.sender._id === currentUser.id || message.sender === currentUser.id;
+            div.className = `flex flex-col ${isSelf ? 'items-end' : 'items-start'}`;
+            
+            const senderName = typeof message.sender === 'object' ? message.sender.username : 'User';
+
+            div.innerHTML = `
+                <div class="text-xs text-gray-500 mb-1">${senderName}</div>
+                <div class="px-4 py-2 rounded-lg max-w-xs ${isSelf ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-800'}">
+                    ${message.content || ''}
+                </div>
+            `;
+            messagesList.appendChild(div);
+            messagesList.scrollTop = messagesList.scrollHeight;
+        }
+    </script>
+</body>
+</html>
