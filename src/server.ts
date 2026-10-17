@@ -38,7 +38,7 @@ io.on('connection', (socket) => {
             const savedMessage = await messageRepository.createMessage({
                 sender: validatedData.sender as any,
                 group: validatedData.group as any,
-                content: validatedData.content,
+                content: validatedData.content ,
                 fileUrl: validatedData.fileUrl,
                 fileType: validatedData.fileType,
             });
