@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import authRoutes from "./routes/auth.routes.js";
 import groupRoutes from "./routes/group.routes.js";
+import uploadRoutes from "./routes/upload.routes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
@@ -16,6 +17,7 @@ app.use('/ping', (req, res, next) => {
 });
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
+app.use('/api/upload', uploadRoutes);
 // Accumulated errors
 app.use((error, req, res, next) => {
     res.status(500).json({ message: "Internal Server Error" });

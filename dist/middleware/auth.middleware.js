@@ -1,6 +1,7 @@
 import { verifyToken } from '../utils/jwt.js';
 export const authenticate = (req, res, next) => {
     const authHeader = req.headers.authorization;
+    console.log('Incoming Authorization Header:', authHeader);
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ message: 'Authentication token missing or malformed' });
     }
