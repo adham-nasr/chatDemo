@@ -11,9 +11,9 @@ export interface IGroup extends Document {
 const GroupSchema = new Schema<IGroup>({
   name: { type: String, required: true },
   description: { type: String },
-  members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-  admin: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  members: [{ type: Schema.Types.ObjectId, ref: 'user' }],
+  admin: { type: Schema.Types.ObjectId, ref: 'user', required: true },
   createdAt: { type: Date, default: Date.now },
 });
 
-export const Group = model<IGroup>('Group', GroupSchema);
+export const Group = model<IGroup>('group', GroupSchema , 'group');

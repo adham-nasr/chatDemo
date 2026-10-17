@@ -10,12 +10,12 @@ export interface IMessage extends Document {
 }
 
 const MessageSchema = new Schema<IMessage>({
-  sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  group: { type: Schema.Types.ObjectId, ref: 'Group', required: true },
+  sender: { type: Schema.Types.ObjectId, ref: 'user', required: true },
+  group: { type: Schema.Types.ObjectId, ref: 'group', required: true },
   content: { type: String },
   fileUrl: { type: String },
   fileType: { type: String },
   createdAt: { type: Date, default: Date.now },
 });
 
-export const Message = model<IMessage>('Message', MessageSchema);
+export const Message = model<IMessage>('message', MessageSchema , 'message');
