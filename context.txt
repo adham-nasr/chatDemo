@@ -42,7 +42,15 @@ A real-time group chat application built with Node.js, Express, TypeScript, and 
   - GET /api/groups/:id/messages - Fetch message history for a group
   - POST /api/upload - Upload a file and return its URL
 
-5. High-Level Folder Structure
+5. Socket.io Events
+- Client to Server:
+  - `join_room` - Join a specific group chat room
+  - `leave_room` - Leave a specific group chat room
+  - `send_message` - Send a text or file message to a group
+- Server to Client:
+  - `receive_message` - Broadcast a new message to all members in the room
+
+6. High-Level Folder Structure
 src/
 ├── config.ts         # Environment variables & configuration
 ├── db.ts             # MongoDB connection setup
