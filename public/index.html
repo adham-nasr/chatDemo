@@ -153,8 +153,9 @@
 
         async function loadGroups() {
             try {
+                const currentToken = localStorage.getItem('token');
                 const res = await fetch('/api/groups', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message);
@@ -179,11 +180,12 @@
             if (!name) return;
 
             try {
+                const currentToken = localStorage.getItem('token');
                 const res = await fetch('/api/groups', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${currentToken}`
                     },
                     body: JSON.stringify({ name })
                 });
@@ -200,9 +202,10 @@
             if (!groupId) return;
 
             try {
+                const currentToken = localStorage.getItem('token');
                 const res = await fetch(`/api/groups/${groupId}/join`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message);
@@ -224,8 +227,9 @@
             document.getElementById('chat-input-area').classList.remove('hidden');
 
             try {
+                const currentToken = localStorage.getItem('token');
                 const res = await fetch(`/api/groups/${groupId}/messages`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message);
@@ -247,6 +251,12 @@
 
             if ((!content && !file) || !currentGroupId) return;
 
+            const currentToken = localStorage.getItem('token');
+            if (!currentToken) {
+                alert('Authentication token missing. Please log in again.');
+                return;
+            }
+
             let fileUrl = undefined;
             let fileType = undefined;
 
@@ -257,7 +267,7 @@
                 try {
                     const uploadRes = await fetch('/api/upload', {
                         method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` },
+                        headers: { 'Authorization': `Bearer ${currentToken}` },
                         body: formData
                     });
                     const uploadData = await uploadRes.json();
