@@ -40,7 +40,7 @@ export const getGroups = async (req: AuthenticatedRequest, res: Response) => {
 
 export const joinGroup = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const groupId = req.params.id;
+    const groupId = req.params.id as string;
     const userId = req.user?.userId;
 
     if (!userId) {

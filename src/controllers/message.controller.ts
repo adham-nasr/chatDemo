@@ -4,7 +4,7 @@ import { getGroupMessagesService } from '../services/message.service.js';
 
 export const getGroupMessages = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const groupId = req.params.id;
+    const groupId = req.params.id as string;
     const userId = req.user?.userId;
 
     if (!userId) {
