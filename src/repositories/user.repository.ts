@@ -1,4 +1,4 @@
-import { User, IUser } from '../models/User.js';
+import { User, type IUser } from '../models/User.js';
 
 export class UserRepository {
   async findByUsername(username: string): Promise<IUser | null> {

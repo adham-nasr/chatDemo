@@ -39,9 +39,9 @@ io.on('connection', (socket) => {
             const savedMessage = await messageRepository.createMessage({
                 sender: new Types.ObjectId(validatedData.sender),
                 group: new Types.ObjectId(validatedData.group),
-                content: validatedData.content,
-                fileUrl: validatedData.fileUrl,
-                fileType: validatedData.fileType,
+                 ...(validatedData.content !== undefined && { content: validatedData.content }),
+                ...(validatedData.fileUrl !== undefined && { fileUrl: validatedData.fileUrl }),
+                ...(validatedData.fileType !== undefined && { fileType: validatedData.fileType }),
             });
 
             const populatedMessage = await savedMessage.populate('sender', 'username');

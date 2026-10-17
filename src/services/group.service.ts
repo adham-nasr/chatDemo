@@ -1,21 +1,16 @@
 import { GroupRepository } from '../repositories/group.repository.js';
 import { Types } from 'mongoose';
-import type { IGroup } from '../models/Group.js';
 
 const groupRepository = new GroupRepository();
 
 export const createGroupService = async (data: { name: string; description?: string }, userId: string) => {
-  const groupData: Partial<IGroup> = {
+  const group = await groupRepository.createGroup({
     name: data.name,
+    description: data.description || "",
     admin: new Types.ObjectId(userId),
     members: [new Types.ObjectId(userId)],
-  };
+  });
 
-  if (data.description !== undefined) {
-    groupData.description = data.description;
-  }
-
-  const group = await groupRepository.createGroup(groupData);
   return group;
 };
 

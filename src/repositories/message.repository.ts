@@ -1,4 +1,4 @@
-import { Message, IMessage } from '../models/Message.js';
+import { Message, type IMessage } from '../models/Message.js';
 import { Types } from 'mongoose';
 
 export class MessageRepository {

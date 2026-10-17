@@ -1,4 +1,4 @@
-import { Group, IGroup } from '../models/Group.js';
+import { Group, type IGroup } from '../models/Group.js';
 import { Types } from 'mongoose';
 
 export class GroupRepository {
