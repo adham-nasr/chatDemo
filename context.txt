@@ -52,7 +52,6 @@ A real-time group chat application built with Node.js, Express, TypeScript, and 
 
 6. High-Level Folder Structure
 src/
-├── config.ts         # Environment variables & configuration
 ├── db.ts             # MongoDB connection setup
 ├── controllers/      # Request handlers for routes
 ├── middleware/       # Express middleware (auth, file uploads)
