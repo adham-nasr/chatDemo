@@ -1,6 +1,6 @@
 import { Schema, model, Document, Types } from 'mongoose';
 const GroupSchema = new Schema({
-    name: { type: String, required: true },
+    name: { type: String, required: true, unique: true },
     description: { type: String },
     members: [{ type: Schema.Types.ObjectId, ref: 'user' }],
     admin: { type: Schema.Types.ObjectId, ref: 'user', required: true },

@@ -10,6 +10,9 @@ export class GroupRepository {
     async findGroupById(groupId) {
         return await Group.findById(groupId);
     }
+    async findGroupByName(name) {
+        return await Group.findOne({ name });
+    }
     async addMemberToGroup(groupId, userId) {
         return await Group.findByIdAndUpdate(groupId, { $addToSet: { members: new Types.ObjectId(userId) } }, { new: true });
     }

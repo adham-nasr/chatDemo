@@ -13,7 +13,7 @@ export const createGroup = async (req, res) => {
         });
     }
     catch (error) {
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
+        return res.status(400).json({ message: error.message || 'Internal server error' });
     }
 };
 export const getGroups = async (req, res) => {
@@ -31,12 +31,12 @@ export const getGroups = async (req, res) => {
 };
 export const joinGroup = async (req, res) => {
     try {
-        const groupId = req.params.id;
+        const groupName = req.params.name;
         const userId = req.user?.userId;
         if (!userId) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
-        const group = await joinGroupService(groupId, userId);
+        const group = await joinGroupService(groupName, userId);
         return res.status(200).json({ message: 'Joined group successfully', group });
     }
     catch (error) {
