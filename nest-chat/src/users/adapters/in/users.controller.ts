@@ -1,9 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete ,Req} from '@nestjs/common';
-import { UsersService } from './users.service';
+import { UsersService } from '../../domain/users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import type { AuthenticationRequest } from 'src/utils/types';
-
 
 @Controller('api/auth')
 export class UsersController {

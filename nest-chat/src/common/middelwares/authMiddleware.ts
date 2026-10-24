@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware, UnauthorizedException } from "@nestjs/common";
 import { NextFunction , Request , Response} from "express";
-import { UsersRepository } from "src/users/users.repository";
+import { UsersRepository } from "src/users/adapters/out/database/users.repository";
 import type { AuthenticationRequest } from "src/utils/types";
 import { verifyToken } from "src/utils/jwt";
 

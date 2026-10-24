@@ -6,7 +6,7 @@ import { MessageSchema } from './schemas/message';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GroupsModule } from 'src/groups/groups.module';
 import { AuthMiddleware } from 'src/common/middelwares/authMiddleware';
-import { UserSchema } from 'src/users/schemas/user';
+import { UserSchema } from 'src/users/adapters/out/database/user';
 import { GroupSchema } from 'src/groups/schemas/Group';
 
 
